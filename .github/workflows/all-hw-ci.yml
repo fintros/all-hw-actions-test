@@ -1,0 +1,46 @@
+# Manually triggered workflow
+
+name: ALL-HW ARM CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      binary:
+        description: 'Binary for the task'
+        default: 'test/HelloW.axf'
+        required: true
+      file:
+        description: 'Input data for the task'
+        default: 'test/input1.txt'
+        required: true
+      api_key:
+        description: 'API key for the all-hw.com service'
+        default: 'ba1e491b-331b-4e35-b799-f714b8505843'
+        required: true
+      timeout:
+        description: 'Task timeout'
+        default: '60'
+        required: true
+jobs:
+  remote_task:
+    runs-on: ubuntu-latest    
+    steps:
+    # check out repository first
+    - name: Check out repository
+      uses: actions/checkout@main
+    # and run all-hw task
+    - name: Run remote task
+      id: task
+      uses: all-hw/uart-task@main
+      with:
+        binary: ./${{ github.event.inputs.binary }}
+        uart-in: ./${{ github.event.inputs.file }}
+        api-key: ${{ github.event.inputs.api_key }}
+        timeout: ${{ github.event.inputs.timeout }}
+      timeout-minutes: 1
+    - name: Status
+      run: echo "${{ steps.task.outputs.status }}"
+    - name: UART output
+      run: echo "${{ steps.task.outputs.uart-out }}"
+    - name: Result code
+      run: echo "${{ steps.task.outputs.result-code }}"
